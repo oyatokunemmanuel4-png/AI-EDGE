@@ -119,7 +119,7 @@ public dashboard on a small server, all in **your** AWS account.
 4. Configure the AWS CLI with a named profile:
 
 ```powershell
-aws configure --profile myaws
+aws configure --profile aiegde
 # paste your Access Key ID, Secret Access Key, region (e.g. us-east-1), format json
 ```
 
@@ -128,7 +128,7 @@ aws configure --profile myaws
 Open `infra/aws/terraform/terraform.tfvars` and set the profile to yours:
 
 ```hcl
-aws_profile = "myaws"
+aws_profile = "aiedge"
 aws_region  = "us-east-1"
 ```
 

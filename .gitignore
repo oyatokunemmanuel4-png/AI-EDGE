@@ -60,3 +60,7 @@ infra/fabric/**/*.tar.gz
 
 app/tests/
 
+
+# Client AWS admin credentials CSV (never commit)
+AI Agent Admin Access.csv
+*Admin Access*.csv
