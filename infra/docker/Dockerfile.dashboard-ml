@@ -1,0 +1,29 @@
+# AI-EDGE dashboard — ML variant that serves the REAL fine-tuned classifier.
+# Same app as Dockerfile.dashboard, plus CPU PyTorch + transformers so the Upload
+# flow uses the fine-tuned RoBERTa (bake-off winner) instead of the stub. The
+# model itself is NOT baked in — mount it at /models/roberta and set
+# AIEDGE_CLASSIFIER_MODEL_DIR (see the dashboard-ml service in docker-compose.yml).
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# CPU PyTorch first (its own index), then the rest.
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir \
+      "fastapi>=0.110" "uvicorn>=0.29" "python-multipart>=0.0.9" \
+      "pyyaml>=6.0" "jsonschema>=4.22" "pypdf>=4.0" \
+      "transformers>=4.41" "sentencepiece>=0.2"
+
+COPY app/aiedge       src/aiedge
+COPY app/schemas      schemas
+COPY app/config/rules config/rules
+
+ENV PYTHONPATH=/app/src
+ENV AIEDGE_RULES_PATH=/app/config/rules/governance_rules.yaml
+ENV AIEDGE_SCHEMA_DIR=/app/schemas
+ENV AIEDGE_DASHBOARD_DECISIONS=/data/decisions.jsonl
+ENV AIEDGE_DASHBOARD_RUNS=/data/runs
+ENV AIEDGE_CLASSIFIER_MODEL_DIR=/models/roberta
+EXPOSE 8000
+
+CMD ["uvicorn", "aiedge.dashboard.app:app", "--host", "0.0.0.0", "--port", "8000"]

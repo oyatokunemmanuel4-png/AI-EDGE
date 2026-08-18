@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package + test/dashboard deps
+        run: python -m pip install -e ".[dev,dashboard]"
+
+      # CPU torch so the classifier logic test (tests/test_nlp.py) runs; it
+      # otherwise self-skips via pytest.importorskip. Keras is not needed —
+      # the anomaly tests use a fake LSTM.
+      - name: Install CPU PyTorch
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Lint (ruff)
+        run: ruff check app ml
+
+      - name: Run tests
+        run: python -m pytest -q

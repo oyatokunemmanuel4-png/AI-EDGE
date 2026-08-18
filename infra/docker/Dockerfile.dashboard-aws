@@ -1,0 +1,32 @@
+# Self-contained dashboard image for AWS App Runner (public hosted demo).
+# Unlike Dockerfile.dashboard-ml (which mounts the model via a compose volume),
+# this BAKES the fine-tuned RoBERTa into the image, because App Runner has no
+# host volumes. Writable paths point at /tmp (App Runner's filesystem is
+# ephemeral; the decision store resets on instance recycle — fine for a demo).
+#
+# Build from the repo root WITH the model present at models/nlp/roberta-base:
+#   docker build -f infra/docker/Dockerfile.dashboard-aws -t <ecr-uri>:latest .
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir \
+      "fastapi>=0.110" "uvicorn>=0.29" "python-multipart>=0.0.9" \
+      "pyyaml>=6.0" "jsonschema>=4.22" "pypdf>=4.0" \
+      "transformers>=4.41" "sentencepiece>=0.2"
+
+COPY app/aiedge       src/aiedge
+COPY app/schemas      schemas
+COPY app/config/rules config/rules
+COPY models/nlp/roberta-base /models/roberta
+
+ENV PYTHONPATH=/app/src
+ENV AIEDGE_RULES_PATH=/app/config/rules/governance_rules.yaml
+ENV AIEDGE_SCHEMA_DIR=/app/schemas
+ENV AIEDGE_CLASSIFIER_MODEL_DIR=/models/roberta
+ENV AIEDGE_DASHBOARD_DECISIONS=/tmp/decisions.jsonl
+ENV AIEDGE_DASHBOARD_RUNS=/tmp/runs
+EXPOSE 8000
+
+CMD ["uvicorn", "aiedge.dashboard.app:app", "--host", "0.0.0.0", "--port", "8000"]

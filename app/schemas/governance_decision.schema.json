@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiedge.local/schemas/governance_decision.schema.json",
+  "title": "AI-EDGE Governance Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision_id",
+    "event_id",
+    "decided_at",
+    "action",
+    "rule_ids",
+    "signals"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["allow", "flag", "block", "alert"]
+    },
+    "rule_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "content_class": {
+          "type": "string",
+          "enum": ["PII", "financial", "policy", "internal", "public"]
+        },
+        "content_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "isolation_forest_score": {
+          "type": "number"
+        },
+        "lstm_score": {
+          "type": "number"
+        },
+        "fused_anomaly_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "type": "string"
+        },
+        "transaction_id": {
+          "type": "string"
+        },
+        "chaincode": {
+          "type": "string"
+        }
+      }
+    },
+    "explanation": {
+      "type": "string"
+    }
+  }
+}

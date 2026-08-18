@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars and adjust. terraform.tfvars is gitignored.
+#
+# To switch AWS accounts later, change aws_profile (and optionally region)
+# here, run `terraform destroy` on the old account, then `terraform apply`.
+
+project_name = "aiedge"
+environment  = "dev"
+aws_region   = "us-east-1"
+
+# Named profile from ~/.aws/credentials (e.g. set up via `aws configure --profile aiedge`).
+# Leave "" to use the default credential chain (env vars / default profile).
+aws_profile = "aiedge"

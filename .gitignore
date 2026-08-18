@@ -1,0 +1,62 @@
+.claude/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data outputs
+data/processed/
+
+
+# Local credentials and infrastructure state
+.env
+*.tfstate
+*.tfstate.*
+.terraform/
+# Note: .terraform.lock.hcl IS committed (pins provider versions for reproducibility)
+
+# Fabric and generated artifacts
+infra/fabric/fabric-samples/
+infra/fabric/install-fabric.sh
+organizations/
+system-genesis-block/
+channel-artifacts/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+
+# Editable-install metadata
+src/*.egg-info/
+*.egg-info/
+
+# Terraform local var files (keep the .example)
+*.tfvars
+!*.tfvars.example
+
+# AWS access-key CSVs (downloaded from IAM) — must never be committed
+*accessKeys*.csv
+*_accessKeys.csv
+credentials.csv
+
+# Lambda build artifacts
+infra/aws/lambda/package/
+infra/aws/lambda/dist/
+
+# Trained model artifacts (regenerate via training/ scripts)
+app/tests
+docs/
+
+# Generated content datasets (regenerate via scripts/generate_content_docs.py)
+data/raw/content/generated_*.jsonl
+
+# Chaincode build deps
+infra/fabric/chaincode/**/node_modules/
+infra/fabric/**/*.tar.gz
+
+app/tests/
+

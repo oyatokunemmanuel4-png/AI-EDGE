@@ -1,0 +1,5 @@
+{"document_id":"seed-001","label":"PII","text":"Employee record for Jane Doe includes home address, phone number, and emergency contact details."}
+{"document_id":"seed-002","label":"financial","text":"Quarterly revenue forecast includes margin assumptions, budget variance, and banking settlement notes."}
+{"document_id":"seed-003","label":"policy","text":"The access control policy requires least privilege reviews every quarter and immediate revocation after role change."}
+{"document_id":"seed-004","label":"internal","text":"Engineering roadmap draft covers internal release dates, service ownership, and migration tasks."}
+{"document_id":"seed-005","label":"public","text":"The company website announces a public webinar about responsible data management practices."}

@@ -1,0 +1,8 @@
+CONFIDENTIAL — HR Employee Record
+
+Employee: Jane Doe
+Home address: 42 Maple Avenue, Springfield
+Passport number: X1234567
+Personal phone: +1 (555) 018-2245
+Emergency contact: John Doe (spouse)
+Notes: Contains personal data — handle per the data protection policy.

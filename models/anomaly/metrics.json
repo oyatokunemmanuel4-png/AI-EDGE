@@ -1,0 +1,49 @@
+{
+  "counts": {
+    "train": 8000,
+    "test": 2000,
+    "test_anomalies": 118
+  },
+  "fusion": {
+    "weight": 0.8,
+    "threshold": 0.81
+  },
+  "thresholds": {
+    "isolation_forest": 0.39,
+    "lstm": 0.9,
+    "fused": 0.81
+  },
+  "isolation_forest": {
+    "precision": 0.3146,
+    "recall_detection_rate": 0.8051,
+    "f1": 0.4524,
+    "false_positive_rate": 0.11,
+    "tp": 95,
+    "fp": 207,
+    "tn": 1675,
+    "fn": 23,
+    "roc_auc": 0.9087
+  },
+  "lstm": {
+    "precision": 0.869,
+    "recall_detection_rate": 0.6186,
+    "f1": 0.7228,
+    "false_positive_rate": 0.0058,
+    "tp": 73,
+    "fp": 11,
+    "tn": 1871,
+    "fn": 45,
+    "roc_auc": 0.9821
+  },
+  "fused": {
+    "precision": 0.869,
+    "recall_detection_rate": 0.6186,
+    "f1": 0.7228,
+    "false_positive_rate": 0.0058,
+    "tp": 73,
+    "fp": 11,
+    "tn": 1871,
+    "fn": 45,
+    "roc_auc": 0.9797
+  }
+}

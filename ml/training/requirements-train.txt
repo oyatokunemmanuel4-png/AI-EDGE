@@ -1,0 +1,9 @@
+# Dependencies for the Phase 2 classifier bake-off on a GPU host (e.g. RunPod).
+# On RunPod, start from a PyTorch base image so a CUDA-enabled torch is present;
+# then `pip install -r training/requirements-train.txt` for the rest.
+transformers>=4.41
+datasets>=2.19
+accelerate>=0.30
+scikit-learn>=1.5
+sentencepiece>=0.2
+protobuf>=4.23

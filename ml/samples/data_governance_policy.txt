@@ -1,0 +1,7 @@
+Data Classification & Retention Standard (DCS-2024-047)
+
+This policy defines data governance controls under GDPR and ISO 27001. All
+departments must maintain a data inventory, apply role-based access controls, and
+follow the documented retention schedule. Data subject access requests are
+fulfilled within the statutory timeframe. Approved by the Board; effective
+immediately.

@@ -1,0 +1,19 @@
+# Keep the Docker build context small. Images only build from app/ (code +
+# schemas + config) and, for the App Runner image, models/nlp/roberta-base.
+.venv/
+.git/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Heavy / irrelevant to any image build
+infra/fabric/fabric-samples/
+infra/aws/lambda/package/
+infra/aws/lambda/dist/
+data/
+docs/
+models/anomaly/
+*.zip
+*.docx
+*.csv

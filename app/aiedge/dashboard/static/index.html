@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI-EDGE — Data Governance</title>
+<style>
+  :root{
+    --bg:#ffffff; /* White background */
+    --panel:#ffffff; /* White panel backgrounds */
+    --line:#e5e7eb; /* Soft gray border line */
+    --line-strong:#cbd5e1;
+    --fg:#111827; /* Dark charcoal/black for primary text */
+    --muted:#4b5563; /* Darker muted text for contrast on white background */
+    --ink:#000000; /* Pure black */
+    --neutral:#374151; 
+    --neutral-2:#9ca3af; 
+    --track:#f3f4f6;
+    --danger:#d32f2f; /* Deep red for alerts */
+    --danger-weak:#ef4444; 
+    --danger-bg:#fef2f2; /* Light red background for alerts */
+    --danger-line:#fee2e2;
+    --radius:8px; /* Small round border radius for cards */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:14px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:inherit}
+  .app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+
+  /* Sidebar */
+  aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .brand{padding:18px 18px 16px;border-bottom:1px solid var(--line)}
+  .brand .name{font-weight:700;letter-spacing:.14em;font-size:15px;color:var(--ink)}
+  .brand .sub{color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+  nav{padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+  nav a{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 12px;border-radius:var(--radius);color:var(--fg);text-decoration:none;
+    font-size:13px;border:1px solid transparent;cursor:pointer}
+  nav a:hover{background:var(--track)}
+  nav a.active{background:var(--track);border-color:var(--line-strong);font-weight:600}
+  nav a .badge{min-width:20px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;
+    padding:1px 6px;border-radius:10px;background:var(--track);color:var(--muted);border:1px solid var(--line-strong)}
+  nav a .badge.danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-line);font-weight:700}
+  aside .foot{margin-top:auto;padding:14px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
+
+  /* Main */
+  main{min-width:0;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:baseline;gap:14px;padding:18px 26px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .topbar h1{font-size:17px;margin:0;font-weight:650}
+  .topbar .status{margin-left:auto;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  .content{padding:22px 26px;max-width:1180px;width:100%}
+  section.view{display:none}
+  section.view.active{display:block}
+
+  .grid{display:grid;gap:16px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .cols-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .panel h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 14px;font-weight:700}
+  .tile .v{font-size:30px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .tile .k{color:var(--muted);font-size:12px;margin-top:2px}
+  .tile.danger .v{color:var(--danger)}
+
+  .bar{display:grid;grid-template-columns:96px 1fr 42px;align-items:center;gap:10px;margin:8px 0}
+  .bar .nm{color:var(--muted);font-size:12px;text-align:right;text-transform:capitalize}
+  .bar .track{background:var(--track);border-radius:3px;height:12px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--neutral)}
+  .bar .fill.crit{background:var(--danger)}
+  .bar .n{text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+
+  .meter{margin:12px 0}
+  .meter .r{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+  .meter .r .pct{font-weight:700;font-variant-numeric:tabular-nums}
+  .meter .track{background:var(--track);height:7px;border-radius:4px;overflow:hidden}
+  .meter .fill{height:100%;background:var(--neutral)}
+  .meter .f{color:var(--muted);font-size:11px;margin-top:4px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{ text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;
+    letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--line-strong)}
+  td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:hover td{background:var(--track)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
+  .muted{color:var(--muted)}
+
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;
+    border:1px solid var(--line-strong);background:var(--track);color:var(--fg);text-transform:uppercase;letter-spacing:.03em}
+  .tag.allow{color:var(--muted)}
+  .tag.flag{border-color:var(--line-strong)}
+  .tag.alert,.tag.block{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-line)}
+  .tag.block{font-weight:800}
+
+  .btn{appearance:none;border:1px solid var(--line-strong);background:var(--panel);color:var(--fg);
+    font:inherit;font-weight:600;font-size:13px;padding:9px 16px;border-radius:var(--radius);cursor:pointer}
+  .btn:hover{background:var(--track)}
+  .btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+  .btn.primary:hover{opacity:.92}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .drop{border:1.5px dashed var(--line-strong);border-radius:var(--radius);padding:34px 20px;text-align:center;
+    color:var(--muted);background:var(--panel);cursor:pointer}
+  .drop.over{border-color:var(--neutral);background:var(--track)}
+  .filelist{margin:14px 0;display:flex;flex-direction:column;gap:6px}
+  .filerow{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:var(--radius)}
+
+  .empty{padding:40px 20px;text-align:center;color:var(--muted);border:1px dashed var(--line-strong);border-radius:var(--radius)}
+  .note{font-size:12px;color:var(--muted);margin-top:10px}
+  
+  /* Alert styling with black text for the message and red text for key alert information */
+  .alertcard{border:1px solid var(--danger-line);background:var(--danger-bg);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+  .alertcard .hd{display:flex;align-items:center;gap:10px;margin-bottom:4px;color:var(--danger)}
+  .alertcard .ex{color:#000000;font-weight:550} /* Bold black text for message */
+  .alertcard .meta{color:var(--danger);font-size:12px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap} /* Red meta text */
+  .spin{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><div class="name">AI&#8209;EDGE</div><div class="sub">Data Governance</div></div>
+    <nav id="nav">
+      <a data-view="dashboard">Dashboard</a>
+      <a data-view="upload">Upload Documents</a>
+      <a data-view="results">Analysis Results</a>
+      <a data-view="alerts">Alerts <span class="badge" id="alertBadge">0</span></a>
+    </nav>
+    <div class="foot">Automated Intelligent Enterprise<br/>Data Governance Ecosystem</div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="status" id="status">—</div>
+    </div>
+    <div class="content">
+      <!-- Dashboard -->
+      <section class="view" id="view-dashboard">
+        <div class="grid kpis" id="kpis" style="margin-bottom:16px"></div>
+        <div class="grid cols-2" style="margin-bottom:16px">
+          <div class="panel"><h2>Governance Actions</h2><div id="actions"></div></div>
+          <div class="panel"><h2>Compliance Coverage</h2><div id="compliance"></div></div>
+        </div>
+        <div class="grid cols-2" style="margin-bottom:16px">
+          <div class="panel"><h2>SDG Alignment Indicators</h2><div id="sdg"></div></div>
+          <div class="panel"><h2>Data Planes</h2><div id="planes"></div></div>
+        </div>
+        <div class="panel"><h2>Recent Activity</h2><div id="recent"></div></div>
+      </section>
+
+      <!-- Upload -->
+      <section class="view" id="view-upload">
+        <div class="panel" style="max-width:720px">
+          <h2>Upload Documents</h2>
+          <div class="drop" id="drop">
+            <div><strong>Drop files here</strong> or click to browse</div>
+            <div class="note">Accepted: .pdf (text-based), .txt, .jsonl (one record per line).
+              Scanned/image PDFs require OCR and are not supported.</div>
+          </div>
+          <input type="file" id="fileInput" multiple accept=".pdf,.txt,.jsonl,application/pdf,text/plain" hidden />
+          <div class="filelist" id="filelist"></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn primary" id="processBtn" disabled>Process Documents</button>
+            <span class="spin" id="uploadStatus"></span>
+          </div>
+          <div class="note">Documents are processed by the existing governance pipeline
+            (classification, anomaly detection, and rule enforcement). Results are recorded to
+            the audit ledger where enabled.</div>
+        </div>
+      </section>
+
+      <!-- Analysis Results -->
+      <section class="view" id="view-results">
+        <div class="panel">
+          <h2>Analysis Results <span class="muted" id="runLabel"></span></h2>
+          <div id="results"></div>
+        </div>
+      </section>
+
+      <!-- Alerts -->
+      <section class="view" id="view-alerts">
+        <div class="panel">
+          <h2>Alerts</h2>
+          <div id="alerts"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const el = (t, c, h) => { const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
+const pct = x => (100*(x||0)).toFixed(1)+'%';
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const fmtTime = s => s ? String(s).replace('T',' ').slice(0,19) : '—';
+const CRIT = a => a==='alert' || a==='block';
+
+async function getJSON(u,o){ const r=await fetch(u,o); if(!r.ok) throw new Error(r.status); return r.json(); }
+
+const TITLES={dashboard:'Dashboard',upload:'Upload Documents',results:'Analysis Results',alerts:'Alerts'};
+function show(view){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  $('#view-'+view).classList.add('active');
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===view));
+  $('#pageTitle').textContent=TITLES[view]||'Dashboard';
+  if(view==='dashboard') loadDashboard();
+  if(view==='results') loadResults();
+  if(view==='alerts') loadAlerts();
+}
+function nav(v){ location.hash='#'+v; }
+window.addEventListener('hashchange',()=>show((location.hash||'#dashboard').slice(1)));
+document.querySelectorAll('#nav a').forEach(a=>a.addEventListener('click',()=>nav(a.dataset.view)));
+
+function stamp(){ $('#status').textContent='Updated '+new Date().toLocaleTimeString(); }
+
+/* ---------- Dashboard ---------- */
+async function loadDashboard(){
+  let m; try{ m=await getJSON('/api/metrics'); }catch{ m=null; }
+  const t=(m&&m.totals)||{decisions:0,enforced:0,ledger_recorded:0};
+  const r=(m&&m.rates)||{}; const ba=(m&&m.by_action)||{};
+  const openAlerts=(ba.alert||0)+(ba.block||0);
+  updateAlertBadge(openAlerts);
+
+  const kpis=[
+    ['Decisions', t.decisions, false],
+    ['Enforced', t.enforced+' ('+pct(r.enforcement_rate)+')', false],
+    ['Ledger Recorded', t.ledger_recorded+' ('+pct(r.ledger_coverage)+')', false],
+    ['Open Alerts', openAlerts, openAlerts>0],
+  ];
+  $('#kpis').innerHTML='';
+  kpis.forEach(([k,v,d])=>{ const p=el('div','panel tile'+(d?' danger':'')); p.append(el('div','v',esc(v)),el('div','k',esc(k))); $('#kpis').append(p); });
+
+  // actions
+  const max=Math.max(1,...['allow','flag','alert','block'].map(a=>ba[a]||0));
+  $('#actions').innerHTML='';
+  ['allow','flag','alert','block'].forEach(a=>{
+    const n=ba[a]||0, row=el('div','bar');
+    row.append(el('div','nm',a),
+      el('div','track',`<div class="fill ${CRIT(a)?'crit':''}" style="width:${100*n/max}%"></div>`),
+      el('div','n',n));
+    $('#actions').append(row);
+  });
+
+  // compliance
+  const ch=(m&&m.compliance_hits)||{}; const keys=Object.keys(ch);
+  $('#compliance').innerHTML = keys.length ? '' : '<div class="muted">No compliance-tagged controls fired yet.</div>';
+  const cmax=Math.max(1,...keys.map(k=>ch[k]));
+  keys.forEach(k=>{ const row=el('div','bar'); row.append(el('div','nm',k),
+    el('div','track',`<div class="fill" style="width:${100*ch[k]/cmax}%"></div>`), el('div','n',ch[k])); $('#compliance').append(row); });
+
+  // sdg
+  const sdg=(m&&m.sdg)||{}; $('#sdg').innerHTML='';
+  Object.values(sdg).forEach(s=>{ const wrap=el('div','meter');
+    wrap.innerHTML=`<div class="r"><span>${esc(s.label)}</span><span class="pct">${pct(s.score)}</span></div>
+      <div class="track"><div class="fill" style="width:${100*s.score}%"></div></div>
+      <div class="f">${esc(s.formula)}</div>`; $('#sdg').append(wrap); });
+  if(!Object.keys(sdg).length) $('#sdg').innerHTML='<div class="muted">No indicators yet.</div>';
+
+  // planes
+  const bp=(m&&m.by_plane)||{}; const pk=Object.keys(bp);
+  $('#planes').innerHTML = pk.length ? '' : '<div class="muted">No processed events yet.</div>';
+  const pmax=Math.max(1,...pk.map(k=>bp[k]));
+  pk.forEach(k=>{ const row=el('div','bar'); row.append(el('div','nm',k),
+    el('div','track',`<div class="fill" style="width:${100*bp[k]/pmax}%"></div>`), el('div','n',bp[k])); $('#planes').append(row); });
+
+  // recent
+  let dec=[]; try{ dec=await getJSON('/api/decisions?limit=8'); }catch{}
+  renderDecisionTable($('#recent'), dec, true);
+  stamp();
+}
+
+function renderDecisionTable(container, rows, compact){
+  if(!rows||!rows.length){ container.innerHTML='<div class="empty">No activity yet. Upload documents to begin.</div>'; return; }
+  const t=el('table'); t.innerHTML='<thead><tr><th>Time</th><th>Action</th><th>Rules</th>'
+    +(compact?'':'<th>Signals</th>')+'<th>Ledger</th></tr></thead>';
+  const tb=el('tbody');
+  rows.forEach(d=>{
+    const tx=(d.ledger&&d.ledger.transaction_id)||'';
+    const tr=el('tr');
+    tr.innerHTML=`<td class="muted mono">${esc(fmtTime(d.decided_at))}</td>
+      <td><span class="tag ${esc(d.action)}">${esc(d.action)}</span></td>
+      <td>${(d.rule_ids||[]).map(r=>`<span class="mono">${esc(r)}</span>`).join(', ')}</td>
+      ${compact?'':`<td class="mono muted">${esc(signalText(d.signals))}</td>`}
+      <td class="mono muted">${tx?esc(tx.slice(0,12))+'…':'—'}</td>`;
+    tb.append(tr);
+  });
+  t.append(tb); container.innerHTML=''; container.append(t);
+}
+function signalText(s){ if(!s)return''; if('content_class'in s)return s.content_class+' '+(s.content_confidence!=null?'('+s.content_confidence+')':'');
+  if('fused_anomaly_score'in s)return 'anomaly '+s.fused_anomaly_score; return ''; }
+
+/* ---------- Upload ---------- */
+let selected=[];
+const drop=$('#drop'), fi=$('#fileInput');
+drop.addEventListener('click',()=>fi.click());
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',ev=>addFiles(ev.dataTransfer.files));
+fi.addEventListener('change',()=>addFiles(fi.files));
+function addFiles(list){ for(const f of list) selected.push(f); renderFiles(); }
+function renderFiles(){
+  $('#filelist').innerHTML='';
+  selected.forEach((f,i)=>{ const r=el('div','filerow');
+    r.innerHTML=`<span>${esc(f.name)}</span><span class="muted">${(f.size/1024).toFixed(1)} KB
+      <a data-i="${i}" style="cursor:pointer;margin-left:10px">remove</a></span>`; $('#filelist').append(r); });
+  $('#filelist').querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{selected.splice(+a.dataset.i,1);renderFiles();}));
+  $('#processBtn').disabled = selected.length===0;
+}
+$('#processBtn').addEventListener('click',async()=>{
+  if(!selected.length)return;
+  const fd=new FormData(); selected.forEach(f=>fd.append('files',f));
+  $('#processBtn').disabled=true; $('#uploadStatus').textContent='Processing through governance pipeline…';
+  try{
+    const res=await getJSON('/api/upload',{method:'POST',body:fd});
+    $('#uploadStatus').textContent=`Processed ${res.processed} record(s)`+(res.errors?`, ${res.errors} error(s)`:'')+'. Redirecting…';
+    selected=[]; renderFiles();
+    setTimeout(()=>nav('results'),700);   // flow: auto-direct to Analysis Results
+  }catch(e){ $('#uploadStatus').textContent='Upload failed ('+e.message+').'; $('#processBtn').disabled=false; }
+});
+
+/* ---------- Analysis Results ---------- */
+async function loadResults(){
+  let run; try{ run=await getJSON('/api/results?run_id=latest'); }catch{ run=null; }
+  const c=$('#results');
+  if(!run||!run.run_id){ $('#runLabel').textContent=''; c.innerHTML='<div class="empty">No analysis yet. Upload documents to generate results.</div>'; return; }
+  $('#runLabel').textContent=`— run ${run.run_id} · ${run.processed} processed`+(run.errors?` · ${run.errors} error(s)`:'');
+  const rows=run.results||[];
+  const t=el('table'); t.innerHTML='<thead><tr><th>Document</th><th>Plane</th><th>Class / Signal</th><th>Action</th><th>Rules</th><th>Ledger</th></tr></thead>';
+  const tb=el('tbody');
+  rows.forEach(r=>{
+    const tr=el('tr');
+    if(r.error){ tr.innerHTML=`<td>${esc(r.filename)}</td><td colspan="5" class="muted">Error: ${esc(r.error)}</td>`; tb.append(tr); return; }
+    const d=r.decision, ev=r.event, plane=(ev&&ev.data_plane)||'';
+    const tx=(d.ledger&&d.ledger.transaction_id)||'';
+    tr.innerHTML=`<td class="mono">${esc(r.filename)}</td>
+      <td class="muted">${esc(plane)}</td>
+      <td class="mono muted">${esc(signalText(d.signals))||'—'}</td>
+      <td><span class="tag ${esc(d.action)}">${esc(d.action)}</span></td>
+      <td>${(d.rule_ids||[]).map(x=>`<span class="mono">${esc(x)}</span>`).join(', ')}</td>
+      <td class="mono muted">${tx?esc(tx.slice(0,12))+'…':'—'}</td>`;
+    tb.append(tr);
+  });
+  t.append(tb); c.innerHTML=''; c.append(t);
+}
+
+/* ---------- Alerts ---------- */
+async function loadAlerts(){
+  let m; try{ m=await getJSON('/api/metrics'); }catch{ m=null; }
+  const alerts=(m&&m.alerts)||[];
+  updateAlertBadge(alerts.length);
+  const c=$('#alerts');
+  if(!alerts.length){ c.innerHTML='<div class="empty">No active alerts. Security and governance events raised by the pipeline will appear here.</div>'; return; }
+  // prioritise block over alert
+  alerts.sort((a,b)=> (b.action==='block')-(a.action==='block'));
+  c.innerHTML='';
+  alerts.forEach(a=>{
+    const card=el('div','alertcard');
+    card.innerHTML=`<div class="hd"><span class="tag ${esc(a.action)}">${esc(a.action)}</span>
+        <span class="mono">${(a.rule_ids||[]).map(esc).join(', ')}</span></div>
+      <div class="ex">${esc(a.explanation||'')}</div>
+      <div class="meta"><span>${esc(fmtTime(a.decided_at))}</span>
+        <span>${a.recorded?'✓ recorded on ledger':'not recorded'}</span></div>`;
+    c.append(card);
+  });
+  stamp();
+}
+
+function updateAlertBadge(n){ const b=$('#alertBadge'); b.textContent=n; b.classList.toggle('danger',n>0); }
+
+/* boot */
+show((location.hash||'#dashboard').slice(1));
+getJSON('/api/metrics').then(m=>updateAlertBadge(((m.by_action||{}).alert||0)+((m.by_action||{}).block||0))).catch(()=>{});
+</script>
+</body>
+</html>

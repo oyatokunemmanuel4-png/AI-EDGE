@@ -1,0 +1,93 @@
+# AI-EDGE governance rule set (Phase 4).
+#
+# The rule engine evaluates every rule against a decision context built from the
+# canonical event plus the content/anomaly signals. ALL conditions in a rule's
+# `when` block must match (AND). Every matching rule contributes its id; the
+# decision's action is the HIGHEST-severity action among matches
+# (block > alert > flag > allow) — governance escalates to the most restrictive
+# matched control. If nothing matches, the default is `allow` (rule
+# `default-allow`).
+#
+# Condition keys:
+#   data_plane                 == content | access
+#   content_class              == PII | financial | policy | internal | public
+#   content_confidence_gte     >= float
+#   access_action              == read|search|download|update|bulk_download|delete|privilege_change
+#                                 (a list value means "in")
+#   resource_class             == PII | financial | policy | internal | public (list = "in")
+#   role, department           == string (list = "in")
+#   fused_anomaly_score_gte    >= float
+#   isolation_forest_score_gte >= float
+#   lstm_score_gte             >= float
+#
+# `references` map each rule to the compliance control it operationalises
+# (GDPR / ISO 27001) — surfaced in the decision explanation for auditability.
+
+rules:
+  # --- Content plane -------------------------------------------------------
+  - id: CONT-PII
+    description: PII content flagged for review
+    when:
+      data_plane: content
+      content_class: PII
+    action: flag
+    explanation: "PII detected in content; review required (GDPR Art.5/32)."
+    references: [GDPR-Art-5, GDPR-Art-32, ISO-27001-A.8]
+
+  - id: CONT-FINANCIAL
+    description: Financial content flagged
+    when:
+      data_plane: content
+      content_class: financial
+    action: flag
+    explanation: "Financial content flagged for handling controls (ISO 27001 A.8)."
+    references: [ISO-27001-A.8]
+
+  # --- Access plane: action-based controls --------------------------------
+  - id: ACC-PRIV-CHANGE
+    description: Privilege change always alerts
+    when:
+      data_plane: access
+      access_action: privilege_change
+    action: alert
+    explanation: "Privilege change is a sensitive access-control event (ISO 27001 A.9)."
+    references: [ISO-27001-A.9]
+
+  - id: ACC-BULK-SENSITIVE
+    description: Bulk download of sensitive data blocked
+    when:
+      data_plane: access
+      access_action: bulk_download
+      resource_class: [PII, financial]
+    action: block
+    explanation: "Bulk export of sensitive data blocked (GDPR Art.32; ISO 27001 A.8)."
+    references: [GDPR-Art-32, ISO-27001-A.8]
+
+  - id: ACC-DELETE-SENSITIVE
+    description: Deletion of sensitive data alerts
+    when:
+      data_plane: access
+      access_action: delete
+      resource_class: [PII, financial, policy]
+    action: alert
+    explanation: "Deletion of sensitive/governed data (ISO 27001 A.8; GDPR Art.5)."
+    references: [ISO-27001-A.8, GDPR-Art-5]
+
+  # --- Access plane: anomaly-score controls -------------------------------
+  - id: ACC-HIGH-ANOMALY
+    description: High fused anomaly score alerts
+    when:
+      data_plane: access
+      fused_anomaly_score_gte: 0.8
+    action: alert
+    explanation: "Fused anomaly score >= 0.8 indicates high-risk access (ISO 27001 A.12)."
+    references: [ISO-27001-A.12]
+
+  - id: ACC-MED-ANOMALY
+    description: Medium fused anomaly score flags
+    when:
+      data_plane: access
+      fused_anomaly_score_gte: 0.5
+    action: flag
+    explanation: "Fused anomaly score >= 0.5 warrants review (ISO 27001 A.12)."
+    references: [ISO-27001-A.12]

@@ -1,0 +1,26 @@
+# AI-EDGE governance dashboard service (Dashboard / Upload / Analysis / Alerts).
+# The Upload flow runs documents through the existing pipeline in-process, so the
+# image includes the pipeline core + jsonschema. It stays torch-free: uploads use
+# the deterministic stub classifier/scorer unless a real model dir is mounted and
+# AIEDGE_CLASSIFIER_MODEL_DIR / AIEDGE_ANOMALY_MODEL_DIR are set (needs the heavier
+# ml deps — not installed here).
+FROM python:3.12-slim
+
+WORKDIR /app
+RUN pip install --no-cache-dir \
+      "fastapi>=0.110" "uvicorn>=0.29" "python-multipart>=0.0.9" \
+      "pyyaml>=6.0" "jsonschema>=4.22" "pypdf>=4.0"
+
+# Full aiedge package (lazy imports keep torch/boto3 optional) + contracts + rules.
+COPY app/aiedge       src/aiedge
+COPY app/schemas      schemas
+COPY app/config/rules config/rules
+
+ENV PYTHONPATH=/app/src
+ENV AIEDGE_RULES_PATH=/app/config/rules/governance_rules.yaml
+ENV AIEDGE_SCHEMA_DIR=/app/schemas
+ENV AIEDGE_DASHBOARD_DECISIONS=/data/decisions.jsonl
+ENV AIEDGE_DASHBOARD_RUNS=/data/runs
+EXPOSE 8000
+
+CMD ["uvicorn", "aiedge.dashboard.app:app", "--host", "0.0.0.0", "--port", "8000"]

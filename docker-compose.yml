@@ -1,0 +1,52 @@
+# AI-EDGE reproducible app stack.
+#
+# `docker compose up dashboard` builds and serves the governance dashboard at
+# http://localhost:8000, reading the decision stream from ./data/processed
+# (produced by the pipeline). This is the OS-agnostic, clone-and-run artifact.
+#
+# The Hyperledger Fabric network + governance CCaaS chaincode are brought up by
+# infra/fabric/wsl_network.sh + deploy_governance_ccaas.sh (they orchestrate
+# channel + lifecycle steps that don't fit static compose). To show the ledger's
+# own decisions in the dashboard, run the dashboard on the host with
+# AIEDGE_DASHBOARD_LEDGER=1 instead of in this container (the container can't
+# reach the WSL peer CLI).
+#
+# Grows into the full stack as later services (inference API, etc.) are added.
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.dashboard
+    image: aiedge-dashboard:latest
+    ports:
+      - "8000:8000"
+    environment:
+      AIEDGE_DASHBOARD_DECISIONS: /data/decisions.jsonl
+      AIEDGE_DASHBOARD_RUNS: /data/runs
+    # Read-write: the Upload flow writes decisions + per-run results here so the
+    # Dashboard and Alerts pages update. To show the ledger's own decisions
+    # instead, run on the host with AIEDGE_DASHBOARD_LEDGER=1.
+    volumes:
+      - ./data/processed:/data
+    restart: unless-stopped
+
+  # ML variant: serves the REAL fine-tuned RoBERTa classifier (bake-off winner).
+  # `docker compose up dashboard-ml` -> http://localhost:8001. Requires the model
+  # at ./models/nlp/roberta-base (mounted read-only; produced by the Phase 2
+  # bake-off). Heavier image (CPU torch + transformers).
+  dashboard-ml:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.dashboard-ml
+    image: aiedge-dashboard-ml:latest
+    ports:
+      - "8001:8000"
+    environment:
+      AIEDGE_DASHBOARD_DECISIONS: /data/decisions.jsonl
+      AIEDGE_DASHBOARD_RUNS: /data/runs
+      AIEDGE_CLASSIFIER_MODEL_DIR: /models/roberta
+    volumes:
+      - ./data/processed:/data
+      - ./models/nlp/roberta-base:/models/roberta:ro
+    restart: unless-stopped
